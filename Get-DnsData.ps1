@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 "Get-DnsData" queries the listed DNS Server's specified zones for the specified record types, and optionally matches on the HostName property.
 
@@ -90,4 +90,14 @@ $DnsData = `
 
 $DnsData | `
     Where-Object { $_.HostName -match "$NameLike" } | `
-        Sort-Object -Property RecordType, HostName
+        Select-Object `
+            -Property `
+                HostName, `
+                @{Name='Zone'; exp={(([string]$_.DistinguishedName).Split(',')[1]).Split('=')[1]}}, `
+                @{Name='RD' ; exp={$_.RecordData.IPv4Address.IPAddressToString}}, `
+                RecordType, `
+                Type, `
+                Timestamp, `
+                TimeToLive | `
+            Sort-Object -Property RecordType, HostName, Zone | `
+                Format-Table
